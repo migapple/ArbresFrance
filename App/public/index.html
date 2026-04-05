@@ -1,0 +1,1590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Arbres de France</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #060d07;
+      --bg2:     #0d1a0e;
+      --card:    #111e12;
+      --border:  #223324;
+      --moss:    #4a7c59;
+      --gold:    #c4a35a;
+      --leaf:    #6aab7a;
+      --amber:   #c4622a;
+      --text:    #cfc9b5;
+      --text2:   #6e8a73;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bot: env(safe-area-inset-bottom, 0px);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+    #app {
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      display: flex;
+      flex-direction: column;
+      padding-top: var(--safe-top);
+      background: var(--bg);
+      font-family: 'Jost', sans-serif;
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      flex-shrink: 0;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 11px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+    .hdr-deco {
+      position: absolute;
+      pointer-events: none;
+      opacity: .09;
+    }
+    header h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 21px;
+      font-weight: 500;
+      color: var(--gold);
+      letter-spacing: .04em;
+      line-height: 1.15;
+    }
+    header h1 em {
+      display: block;
+      font-style: normal;
+      font-size: 10px;
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      color: var(--text2);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+    .lang-btn {
+      font-size: 22px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 9px;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: border-color .2s;
+    }
+    .lang-btn:active { transform: scale(.93); }
+
+    /* ── BOTTOM NAV ── */
+    nav {
+      order: 10;
+      flex-shrink: 0;
+      display: flex;
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      padding-bottom: var(--safe-bot);
+    }
+    .nav-btn {
+      flex: 1;
+      padding: 9px 2px 7px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: var(--text2);
+      font-size: 9px;
+      font-family: 'Jost', sans-serif;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      transition: color .2s;
+    }
+    .nav-btn .ic { font-size: 19px; line-height: 1; }
+    .nav-btn.active { color: var(--leaf); }
+
+    /* ── SCREENS ── */
+    .screen {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      display: none;
+    }
+    .screen.active { display: block; }
+    ::-webkit-scrollbar { width: 2px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); }
+
+    /* ── ACCUEIL ── */
+    .hero {
+      position: relative;
+      padding: 28px 20px 20px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero-deco { position: absolute; pointer-events: none; }
+    .hero h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 34px;
+      font-weight: 400;
+      color: var(--gold);
+      line-height: 1.15;
+      position: relative;
+      z-index: 1;
+    }
+    .hero h2 em {
+      font-style: italic;
+      color: var(--leaf);
+    }
+    .hero p {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.65;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stats-strip {
+      display: flex;
+      gap: 10px;
+      padding: 0 16px 18px;
+    }
+    .stat {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 8px;
+      text-align: center;
+    }
+    .stat .n {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      color: var(--gold);
+      line-height: 1;
+    }
+    .stat .l {
+      font-size: 9px;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      margin-top: 3px;
+    }
+
+    /* Famille section */
+    .fam-title {
+      padding: 14px 16px 6px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      font-style: italic;
+      color: var(--gold);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .fam-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--border), transparent);
+    }
+    .fam-scroll {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 0 16px 14px;
+      scrollbar-width: none;
+    }
+    .fam-scroll::-webkit-scrollbar { display: none; }
+    .mini-card {
+      flex-shrink: 0;
+      width: 96px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .mini-card:active { border-color: var(--moss); transform: scale(.97); }
+    .mini-thumb {
+      width: 96px;
+      height: 68px;
+      background: var(--bg2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      overflow: hidden;
+    }
+    .mini-thumb img { width:100%; height:100%; object-fit:cover; }
+    .mini-name {
+      padding: 6px 7px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    /* ── ESSENCES LIST ── */
+    .search-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 9;
+      background: var(--bg);
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .search-wrap input {
+      width: 100%;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: 'Jost', sans-serif;
+      font-size: 14px;
+      outline: none;
+    }
+    .search-wrap input::placeholder { color: var(--text2); }
+    .search-wrap input:focus { border-color: var(--moss); }
+
+    .tree-card {
+      margin: 5px 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px;
+      display: flex;
+      gap: 12px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .15s;
+    }
+    .tree-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--moss);
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .tree-card:active { border-color: var(--moss); }
+    .tree-card:active::before { opacity: 1; }
+    .tree-thumb {
+      width: 58px; height: 58px;
+      border-radius: 8px;
+      background: var(--bg2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .tree-thumb img { width:100%; height:100%; object-fit:cover; border-radius:8px; }
+    .tree-meta h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .tree-meta .lat {
+      font-style: italic;
+      font-size: 11.5px;
+      color: var(--text2);
+      margin-top: 1px;
+    }
+    .tags { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+    .tag {
+      font-size: 10px;
+      background: rgba(74,124,89,.13);
+      color: var(--leaf);
+      border: 1px solid rgba(74,124,89,.3);
+      border-radius: 4px;
+      padding: 2px 6px;
+    }
+
+    /* ── DETAIL ── */
+    #detail {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 50;
+      display: none;
+      flex-direction: column;
+      padding-top: var(--safe-top);
+    }
+    #detail.open { display: flex; }
+    .det-hdr {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .back-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 18px;
+      padding: 4px 10px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .det-hdr h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 19px;
+      color: var(--gold);
+      font-weight: 400;
+    }
+    .det-scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: calc(20px + var(--safe-bot));
+    }
+    .det-hero {
+      width: 100%; height: 195px;
+      background: var(--bg2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 60px;
+      overflow: hidden;
+    }
+    .det-hero img { width:100%; height:100%; object-fit:cover; }
+    .det-body { padding: 16px; }
+    .det-body h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 30px;
+      font-weight: 400;
+      color: var(--gold);
+    }
+    .det-lat {
+      font-style: italic;
+      color: var(--text2);
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+    .data-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .data-cell {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .data-cell .dl {
+      font-size: 9.5px;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+    .data-cell .dv {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px;
+      color: var(--text);
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+    .sec-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      font-style: italic;
+      color: var(--gold);
+      margin: 18px 0 8px;
+    }
+    .phenol-row {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 3px;
+    }
+    .ph-cell { text-align: center; }
+    .ph-lbl { font-size: 8px; color: var(--text2); margin-bottom: 2px; }
+    .ph-bar { height: 11px; border-radius: 2px; background: var(--bg2); }
+    .ph-bar.fe { background: #4a7c59; }
+    .ph-bar.fl { background: var(--gold); }
+    .ph-bar.fr { background: #8b4513; }
+    .ph-bar.co { background: var(--amber); }
+    .legend-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 7px; }
+    .leg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
+    .leg-dot { width: 10px; height: 10px; border-radius: 2px; }
+    .usage-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+    .usage-chip {
+      background: rgba(196,163,90,.1);
+      color: var(--gold);
+      border: 1px solid rgba(196,163,90,.3);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+    .anec {
+      background: var(--card);
+      border-left: 3px solid var(--moss);
+      border-radius: 0 8px 8px 0;
+      padding: 13px;
+      font-size: 13px;
+      font-style: italic;
+      line-height: 1.65;
+      color: var(--text);
+      margin-top: 4px;
+    }
+
+    /* ── QUIZ ── */
+    .quiz-wrap { padding: 14px; }
+    .score-strip { display: flex; gap: 10px; margin-bottom: 14px; }
+    .sc {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    .sc .sn { font-family: 'Cormorant Garamond', serif; font-size: 28px; color: var(--gold); line-height:1; }
+    .sc .sl { font-size: 9px; color: var(--text2); text-transform: uppercase; letter-spacing: .1em; }
+    .qcard {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .q-img {
+      width:100%; height:175px;
+      background: var(--bg2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 58px; overflow: hidden;
+    }
+    .q-img img { width:100%; height:100%; object-fit:cover; }
+    .q-text { padding: 13px 13px 4px; font-family:'Cormorant Garamond',serif; font-size: 18px; color:var(--text); }
+    .q-opts {
+      padding: 8px 13px 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .q-opt {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 8px;
+      cursor: pointer;
+      font-size: 13px;
+      color: var(--text);
+      text-align: center;
+      font-family: 'Jost', sans-serif;
+      transition: all .18s;
+      line-height: 1.3;
+    }
+    .q-opt.ok  { background: rgba(74,124,89,.28); border-color: var(--moss); color: var(--leaf); }
+    .q-opt.bad { background: rgba(180,55,55,.2);  border-color: #b43c3c; color: #e07070; }
+    .q-next {
+      display: block;
+      width: 100%;
+      background: var(--moss);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 15px;
+      font-family: 'Jost', sans-serif;
+      cursor: pointer;
+      letter-spacing: .05em;
+      margin-top: 4px;
+    }
+
+    /* ── CALENDRIER ── */
+    .cal-wrap { padding: 14px; }
+    .cal-tbl { margin-top: 10px; }
+    .cal-hdr-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+    .cal-name-col { width: 105px; flex-shrink: 0; }
+    .cal-months {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(12,1fr);
+      gap: 1px;
+    }
+    .cal-mlbl { font-size: 8px; color: var(--text2); text-align: center; }
+    .cal-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 5px;
+      cursor: pointer;
+    }
+    .cal-name {
+      width: 105px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 12.5px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex-shrink: 0;
+    }
+    .cal-bars {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(12,1fr);
+      gap: 1px;
+    }
+    .cb { height: 9px; border-radius: 1px; background: var(--bg2); }
+
+    /* ── CARTE ── */
+    .carte-wrap { padding: 14px; }
+    .carte-ttl {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    svg.map { width: 100%; max-width: 400px; display: block; margin: 0 auto; }
+    .foret-box {
+      margin-top: 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      min-height: 80px;
+    }
+    .foret-box h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      color: var(--gold);
+      margin-bottom: 5px;
+    }
+    .foret-box p { font-size: 12.5px; color: var(--text2); line-height: 1.55; }
+    .foret-box .tags { margin-top: 8px; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ HEADER ══ -->
+  <header>
+    <!-- Décor feuilles SVG gauche -->
+    <svg class="hdr-deco" style="left:-8px;top:-12px;width:90px;" viewBox="0 0 100 110">
+      <path d="M55 100 C10 80 -5 40 15 5 C40 25 65 55 55 100Z" fill="#4a7c59"/>
+      <line x1="15" y1="5" x2="55" y2="100" stroke="#6aab7a" stroke-width="1.2" opacity=".7"/>
+      <path d="M30 75 C20 60 25 45 35 35" stroke="#6aab7a" stroke-width=".8" fill="none" opacity=".5"/>
+      <path d="M40 55 C32 42 36 28 44 20" stroke="#6aab7a" stroke-width=".8" fill="none" opacity=".4"/>
+    </svg>
+    <!-- Décor feuilles SVG droite -->
+    <svg class="hdr-deco" style="right:-8px;top:-12px;width:90px;transform:scaleX(-1);" viewBox="0 0 100 110">
+      <path d="M55 100 C10 80 -5 40 15 5 C40 25 65 55 55 100Z" fill="#4a7c59"/>
+      <line x1="15" y1="5" x2="55" y2="100" stroke="#6aab7a" stroke-width="1.2" opacity=".7"/>
+    </svg>
+
+    <div>
+      <h1>Arbres de France<em id="hdr-sub">Guide des 50 Essences</em></h1>
+    </div>
+    <button class="lang-btn" id="langBtn" onclick="toggleLang()">🇬🇧</button>
+  </header>
+
+  <!-- ══ SCREENS ══ -->
+
+  <!-- ACCUEIL -->
+  <div class="screen active" id="sc-accueil">
+    <div class="hero">
+      <!-- grandes feuilles décoratives -->
+      <svg class="hero-deco" style="left:-18px;top:0;width:110px;opacity:.1;" viewBox="0 0 130 200">
+        <path d="M70 190 C5 150 -15 80 20 10 C60 50 100 120 70 190Z" fill="#4a7c59"/>
+        <line x1="20" y1="10" x2="70" y2="190" stroke="#c4a35a" stroke-width="1.5"/>
+        <path d="M35 160 C22 130 28 105 42 90" stroke="#6aab7a" stroke-width="1" fill="none"/>
+        <path d="M50 125 C38 98 42 75 55 60" stroke="#6aab7a" stroke-width=".8" fill="none"/>
+        <path d="M58 90 C48 68 52 48 63 34" stroke="#6aab7a" stroke-width=".7" fill="none"/>
+      </svg>
+      <svg class="hero-deco" style="right:-18px;top:10px;width:95px;opacity:.09;transform:scaleX(-1)rotate(15deg);" viewBox="0 0 130 200">
+        <path d="M70 190 C5 150 -15 80 20 10 C60 50 100 120 70 190Z" fill="#4a7c59"/>
+        <line x1="20" y1="10" x2="70" y2="190" stroke="#c4a35a" stroke-width="1.5"/>
+        <path d="M35 160 C22 130 28 105 42 90" stroke="#6aab7a" stroke-width="1" fill="none"/>
+      </svg>
+      <!-- Petite branche en bas à gauche -->
+      <svg class="hero-deco" style="left:10px;bottom:-5px;width:70px;opacity:.12;" viewBox="0 0 80 60">
+        <path d="M5 55 C20 40 50 30 75 10" stroke="#4a7c59" stroke-width="2" fill="none"/>
+        <path d="M25 45 C30 32 42 28 55 22" stroke="#4a7c59" stroke-width="1.2" fill="none"/>
+        <ellipse cx="58" cy="20" rx="8" ry="5" fill="#4a7c59" transform="rotate(-30 58 20)"/>
+        <ellipse cx="75" cy="9" rx="8" ry="5" fill="#4a7c59" transform="rotate(-45 75 9)"/>
+        <ellipse cx="55" cy="21" rx="7" ry="4" fill="#4a7c59" transform="rotate(-20 55 21)"/>
+      </svg>
+
+      <h2>Les <em>Arbres</em><br>de France</h2>
+      <p id="hero-p">Découvrez les 50 essences indigènes,<br>leurs secrets et leur histoire</p>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat"><div class="n">50</div><div class="l" id="st1">Essences</div></div>
+      <div class="stat"><div class="n">6</div><div class="l" id="st2">Familles</div></div>
+      <div class="stat"><div class="n">13</div><div class="l" id="st3">Forêts</div></div>
+    </div>
+
+    <div id="home-body"></div>
+  </div>
+
+  <!-- ESSENCES -->
+  <div class="screen" id="sc-essences">
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="Rechercher un arbre…" oninput="filterTrees(this.value)">
+    </div>
+    <div id="tree-list"></div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="sc-quiz">
+    <div class="quiz-wrap" id="quiz-wrap"></div>
+  </div>
+
+  <!-- CALENDRIER -->
+  <div class="screen" id="sc-cal">
+    <div class="cal-wrap" id="cal-wrap"></div>
+  </div>
+
+  <!-- CARTE -->
+  <div class="screen" id="sc-carte">
+    <div class="carte-wrap" id="carte-wrap"></div>
+  </div>
+
+  <!-- ══ NAV ══ -->
+  <nav>
+    <button class="nav-btn active" onclick="goTo('accueil',this)">
+      <span class="ic">🌿</span><span id="nav0">Accueil</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('essences',this)">
+      <span class="ic">🌳</span><span id="nav1">Essences</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('quiz',this)">
+      <span class="ic">🧠</span><span id="nav2">Quiz</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('cal',this)">
+      <span class="ic">📅</span><span id="nav3">Calendrier</span>
+    </button>
+    <button class="nav-btn" onclick="goTo('carte',this)">
+      <span class="ic">🗺️</span><span id="nav4">Carte</span>
+    </button>
+  </nav>
+
+  <!-- ══ DETAIL OVERLAY ══ -->
+  <div id="detail">
+    <div class="det-hdr">
+      <button class="back-btn" onclick="closeDetail()">←</button>
+      <h2 id="det-title"></h2>
+    </div>
+    <div class="det-scroll" id="det-body"></div>
+  </div>
+
+</div><!-- #app -->
+
+<script>
+// ════════════════════════════════════════════
+//  DATA — 50 essences
+// ════════════════════════════════════════════
+const LANG = { v: 'fr' };
+const T = (fr, en) => LANG.v === 'fr' ? fr : en;
+
+const ARBRES = [
+  // ── Chênes & Hêtres ────────────────────────
+  { id:1,  nom:"Chêne pédonculé",       nomEn:"Pedunculate Oak",      latin:"Quercus robur",
+    fam:"Chênes & Hêtres", famEn:"Oaks & Beeches", ic:"🌳",
+    h:"20–40 m", age:"500–1000 ans", ageEn:"500–1000 years",
+    hab:"Plaines et vallées", habEn:"Plains and valleys",
+    reg:"Toute la France", regEn:"All of France",
+    us:["Charpente","Menuiserie","Tannin"], usEn:["Timber","Carpentry","Tanning"],
+    an:"Arbre national de France, le chêne pédonculé symbolise force et pérennité. Louis XIV fit planter des milliers de chênes pour la marine royale.",
+    anEn:"France's national tree, the pedunculate oak symbolizes strength and longevity. Louis XIV had thousands planted for the royal navy.",
+    wiki:"Quercus_robur", fe:[4,5,6,7,8,9,10], fl:[4,5], fr:[9,10], co:[10,11] },
+
+  { id:2,  nom:"Chêne sessile",          nomEn:"Sessile Oak",           latin:"Quercus petraea",
+    fam:"Chênes & Hêtres", famEn:"Oaks & Beeches", ic:"🌳",
+    h:"25–40 m", age:"300–800 ans", ageEn:"300–800 years",
+    hab:"Collines et sols acides", habEn:"Hills and acidic soils",
+    reg:"Nord, Centre, Est", regEn:"North, Centre, East",
+    us:["Tonnellerie","Parquet","Chauffage"], usEn:["Cooperage","Flooring","Firewood"],
+    an:"Très apprécié en tonnellerie : les meilleures barriques de vin de Bourgogne sont faites de son bois. Son grain fin apporte des arômes subtils au vin.",
+    anEn:"Prized for barrel-making: the finest Burgundy wine barrels are crafted from its wood. Its fine grain gives subtle aromas to wine.",
+    wiki:"Quercus_petraea", fe:[4,5,6,7,8,9,10], fl:[4,5], fr:[9,10], co:[10,11] },
+
+  { id:3,  nom:"Chêne pubescent",        nomEn:"Downy Oak",             latin:"Quercus pubescens",
+    fam:"Chênes & Hêtres", famEn:"Oaks & Beeches", ic:"🌳",
+    h:"10–20 m", age:"200–400 ans", ageEn:"200–400 years",
+    hab:"Causses et versants secs", habEn:"Limestone plateaus",
+    reg:"Sud et Centre", regEn:"South and Centre",
+    us:["Chauffage","Truffe (hôte)"], usEn:["Firewood","Truffle (host)"],
+    an:"Hôte préféré de la truffe du Périgord (Tuber melanosporum). Les truffières du Lot et du Vaucluse lui doivent tout.",
+    anEn:"Preferred host of the Périgord truffle. The truffle orchards of Lot and Vaucluse owe everything to it.",
+    wiki:"Quercus_pubescens", fe:[5,6,7,8,9,10], fl:[4,5], fr:[9,10], co:[] },
+
+  { id:4,  nom:"Hêtre commun",           nomEn:"European Beech",        latin:"Fagus sylvatica",
+    fam:"Chênes & Hêtres", famEn:"Oaks & Beeches", ic:"🌳",
+    h:"25–40 m", age:"200–300 ans", ageEn:"200–300 years",
+    hab:"Forêts montagnardes", habEn:"Mountain forests",
+    reg:"Vosges, Normandie, Alpes", regEn:"Vosges, Normandy, Alps",
+    us:["Menuiserie","Parquet","Jouets"], usEn:["Carpentry","Flooring","Toys"],
+    an:"Le mot allemand 'Buch' (livre) vient du hêtre : les premières tablettes d'écriture germaniques étaient faites d'écorce de hêtre.",
+    anEn:"The German word 'Buch' (book) comes from beech: first Germanic writing tablets were made of beech bark.",
+    wiki:"Fagus_sylvatica", fe:[4,5,6,7,8,9,10], fl:[4,5], fr:[9,10], co:[10,11] },
+
+  { id:5,  nom:"Charme commun",          nomEn:"European Hornbeam",     latin:"Carpinus betulus",
+    fam:"Chênes & Hêtres", famEn:"Oaks & Beeches", ic:"🌿",
+    h:"10–25 m", age:"150–200 ans", ageEn:"150–200 years",
+    hab:"Sous-bois et haies", habEn:"Understory and hedges",
+    reg:"Nord et Centre", regEn:"North and Centre",
+    us:["Chauffage","Tournerie","Parquet"], usEn:["Firewood","Turning","Flooring"],
+    an:"L'un des bois les plus durs de France. Autrefois indispensable pour fabriquer les dents des roues de moulins et les maillets.",
+    anEn:"One of the hardest woods in France. Once essential for making mill gear teeth and mallets.",
+    wiki:"Carpinus_betulus", fe:[4,5,6,7,8,9,10], fl:[4,5], fr:[9,10], co:[10,11] },
+
+  { id:6,  nom:"Châtaignier",            nomEn:"Sweet Chestnut",        latin:"Castanea sativa",
+    fam:"Chênes & Hêtres", famEn:"Oaks & Beeches", ic:"🌰",
+    h:"20–35 m", age:"500–1000 ans", ageEn:"500–1000 years",
+    hab:"Sols siliceux, montagne", habEn:"Siliceous soils, mountain",
+    reg:"Ardèche, Corse, Limousin", regEn:"Ardèche, Corsica, Limousin",
+    us:["Alimentation","Charpente","Tannin"], usEn:["Food","Timber","Tanning"],
+    an:"La châtaigne fut l'arbre à pain des paysans du Massif central pendant des siècles. Des châtaigniers millénaires existent encore en Ardèche.",
+    anEn:"The chestnut was the 'bread tree' of Massif Central peasants for centuries. Thousand-year-old trees still exist in Ardèche.",
+    wiki:"Castanea_sativa", fe:[5,6,7,8,9,10], fl:[6,7], fr:[9,10,11], co:[10,11] },
+
+  { id:7,  nom:"Chêne chevelu",          nomEn:"Turkey Oak",            latin:"Quercus cerris",
+    fam:"Chênes & Hêtres", famEn:"Oaks & Beeches", ic:"🌳",
+    h:"20–35 m", age:"200–400 ans", ageEn:"200–400 years",
+    hab:"Sols calcaires", habEn:"Limestone soils",
+    reg:"Sud-Est", regEn:"South-East",
+    us:["Chauffage","Charbon de bois"], usEn:["Firewood","Charcoal"],
+    an:"Son nom vient de ses cupules hérissées de longues écailles rappelant une chevelure hirsute. Très commun dans les forêts du Sud-Est.",
+    anEn:"Named for its cups covered in long shaggy scales, like untidy hair. Very common in south-east French forests.",
+    wiki:"Quercus_cerris", fe:[4,5,6,7,8,9,10], fl:[4,5], fr:[10,11], co:[10,11] },
+
+  { id:8,  nom:"Chêne de Hongrie",       nomEn:"Hungarian Oak",         latin:"Quercus frainetto",
+    fam:"Chênes & Hêtres", famEn:"Oaks & Beeches", ic:"🌳",
+    h:"15–30 m", age:"200–350 ans", ageEn:"200–350 years",
+    hab:"Sols argileux", habEn:"Clay soils",
+    reg:"Sud-Ouest", regEn:"South-West",
+    us:["Chauffage","Charbon"], usEn:["Firewood","Charcoal"],
+    an:"Possède les plus grandes feuilles de tous les chênes français, pouvant atteindre 20 cm. Reconnaissable à ses nombreux lobes profonds.",
+    anEn:"Has the largest leaves of all French oaks, up to 20 cm long. Recognizable by its many deep lobes.",
+    wiki:"Quercus_frainetto", fe:[5,6,7,8,9,10], fl:[4,5], fr:[10,11], co:[10,11] },
+
+  { id:9,  nom:"Hêtre tortillard",       nomEn:"Twisted Beech",         latin:"Fagus sylvatica var. tortuosa",
+    fam:"Chênes & Hêtres", famEn:"Oaks & Beeches", ic:"🌀",
+    h:"5–15 m", age:"150–250 ans", ageEn:"150–250 years",
+    hab:"Versants ventés", habEn:"Windswept slopes",
+    reg:"Verzy (Marne)", regEn:"Verzy (Marne)",
+    us:["Ornemental"], usEn:["Ornamental"],
+    an:"Les Faux de Verzy en Champagne sont une forêt de hêtres tortillards unique au monde, protégés depuis le VIIe siècle par des moines bénédictins.",
+    anEn:"The Faux de Verzy in Champagne is a unique world forest of twisted beeches, protected since the 7th century by Benedictine monks.",
+    wiki:"Fagus_sylvatica", fe:[4,5,6,7,8,9,10], fl:[4,5], fr:[9,10], co:[10,11] },
+
+  { id:10, nom:"Charme houblon",         nomEn:"Hop Hornbeam",          latin:"Ostrya carpinifolia",
+    fam:"Chênes & Hêtres", famEn:"Oaks & Beeches", ic:"🌿",
+    h:"10–20 m", age:"100–200 ans", ageEn:"100–200 years",
+    hab:"Versants calcaires", habEn:"Limestone slopes",
+    reg:"Sud-Est", regEn:"South-East",
+    us:["Bois d'œuvre","Ornemental"], usEn:["Timber","Ornamental"],
+    an:"Ses fruits ressemblent à des cônes de houblon. Son bois est l'un des plus durs d'Europe, autrefois utilisé pour les marteaux et manches d'outils.",
+    anEn:"Its fruits resemble hop cones. Its wood is one of the hardest in Europe, once used for hammers and tool handles.",
+    wiki:"Ostrya_carpinifolia", fe:[4,5,6,7,8,9,10], fl:[4,5], fr:[9,10], co:[10,11] },
+
+  // ── Conifères ──────────────────────────────
+  { id:11, nom:"Sapin pectiné",          nomEn:"Silver Fir",            latin:"Abies alba",
+    fam:"Conifères", famEn:"Conifers", ic:"🎄",
+    h:"30–60 m", age:"300–600 ans", ageEn:"300–600 years",
+    hab:"Montagnes, versants nord", habEn:"Mountains, north-facing slopes",
+    reg:"Vosges, Alpes, Pyrénées", regEn:"Vosges, Alps, Pyrenees",
+    us:["Charpente","Lutherie","Papier"], usEn:["Timber","Lutherie","Paper"],
+    an:"L'arbre de Noël européen traditionnel ! Il peut atteindre 60 m, ce qui en fait l'un des plus grands arbres d'Europe.",
+    anEn:"The traditional European Christmas tree! It can reach 60 m, making it one of Europe's tallest trees.",
+    wiki:"Abies_alba", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[5,6], fr:[9,10,11], co:[] },
+
+  { id:12, nom:"Pin sylvestre",          nomEn:"Scots Pine",            latin:"Pinus sylvestris",
+    fam:"Conifères", famEn:"Conifers", ic:"🌲",
+    h:"20–40 m", age:"150–300 ans", ageEn:"150–300 years",
+    hab:"Sols pauvres, landes", habEn:"Poor soils, heathland",
+    reg:"Massif central, Landes", regEn:"Massif Central, Landes",
+    us:["Charpente","Résine","Papier"], usEn:["Timber","Resin","Paper"],
+    an:"Reconnaissable à son écorce orangée dans sa partie supérieure. Le pin le plus répandu d'Europe, de l'Écosse à la Sibérie.",
+    anEn:"Recognizable by its orange upper bark. The most widespread pine in Europe, from Scotland to Siberia.",
+    wiki:"Pinus_sylvestris", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[5,6], fr:[10,11,12], co:[] },
+
+  { id:13, nom:"Épicéa commun",          nomEn:"Norway Spruce",         latin:"Picea abies",
+    fam:"Conifères", famEn:"Conifers", ic:"🌲",
+    h:"30–60 m", age:"200–400 ans", ageEn:"200–400 years",
+    hab:"Hautes altitudes", habEn:"High altitudes",
+    reg:"Vosges, Alpes, Jura", regEn:"Vosges, Alps, Jura",
+    us:["Lutherie","Papier","Charpente"], usEn:["Lutherie","Paper","Timber"],
+    an:"La table d'harmonie des violons Stradivarius est faite d'épicéa des Alpes. Les grands luthiers choisissent leurs arbres en forêt, debout.",
+    anEn:"The soundboard of Stradivarius violins is made of Alpine spruce. Master luthiers select their trees standing in the forest.",
+    wiki:"Picea_abies", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[5,6], fr:[10,11,12], co:[] },
+
+  { id:14, nom:"Mélèze d'Europe",        nomEn:"European Larch",        latin:"Larix decidua",
+    fam:"Conifères", famEn:"Conifers", ic:"🍂",
+    h:"25–45 m", age:"500–600 ans", ageEn:"500–600 years",
+    hab:"Alpes ensoleillées", habEn:"Sunny Alps",
+    reg:"Alpes du Sud", regEn:"Southern Alps",
+    us:["Charpente","Bardeaux","Résine"], usEn:["Timber","Shingles","Resin"],
+    an:"Seul conifère européen à perdre ses aiguilles en hiver, offrant des paysages alpins incandescents en automne.",
+    anEn:"The only European conifer to shed its needles in winter, creating incandescent alpine autumn landscapes.",
+    wiki:"Larix_decidua", fe:[4,5,6,7,8,9,10], fl:[4,5], fr:[9,10], co:[10,11] },
+
+  { id:15, nom:"Pin maritime",           nomEn:"Maritime Pine",         latin:"Pinus pinaster",
+    fam:"Conifères", famEn:"Conifers", ic:"🌲",
+    h:"20–35 m", age:"100–200 ans", ageEn:"100–200 years",
+    hab:"Dunes et sables", habEn:"Dunes and sandy soils",
+    reg:"Landes, Méditerranée", regEn:"Landes, Mediterranean",
+    us:["Résine","Papier","Poteaux"], usEn:["Resin","Paper","Poles"],
+    an:"La forêt des Landes, plantée au XIXe siècle, est la plus grande forêt artificielle d'Europe avec 1 million d'hectares.",
+    anEn:"The Landes forest, planted in the 19th century, is Europe's largest artificial forest at 1 million hectares.",
+    wiki:"Pinus_pinaster", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[5,6], fr:[10,11,12], co:[] },
+
+  { id:16, nom:"Pin parasol",            nomEn:"Stone Pine",            latin:"Pinus pinea",
+    fam:"Conifères", famEn:"Conifers", ic:"☂️",
+    h:"15–25 m", age:"200–300 ans", ageEn:"200–300 years",
+    hab:"Littoral méditerranéen", habEn:"Mediterranean coast",
+    reg:"PACA, Corse", regEn:"PACA, Corsica",
+    us:["Pignons (cuisine)","Ornemental"], usEn:["Pine nuts (cooking)","Ornamental"],
+    an:"Produit les célèbres pignons de pin, indispensables au pesto et aux desserts méditerranéens. Sa silhouette en parasol est iconique.",
+    anEn:"Produces the famous pine nuts, essential to pesto and Mediterranean desserts. Its umbrella silhouette is iconic.",
+    wiki:"Pinus_pinea", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[4,5], fr:[10,11,12], co:[] },
+
+  { id:17, nom:"If commun",              nomEn:"Common Yew",            latin:"Taxus baccata",
+    fam:"Conifères", famEn:"Conifers", ic:"♾️",
+    h:"5–15 m", age:"1000–4000 ans", ageEn:"1000–4000 years",
+    hab:"Sous-bois calcaires", habEn:"Calcareous understory",
+    reg:"Normandie, Pyrénées", regEn:"Normandy, Pyrenees",
+    us:["Arcs (archerie)","Taxol (médecine)"], usEn:["Archery bows","Taxol (medicine)"],
+    an:"L'if de La Haye-de-Routot (Normandie) est âgé de plus de 1 500 ans. Presque toutes ses parties sont toxiques sauf l'arille rouge.",
+    anEn:"The yew of La Haye-de-Routot (Normandy) is over 1,500 years old. Almost all parts are toxic except the red aril.",
+    wiki:"Taxus_baccata", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[3,4], fr:[9,10,11], co:[] },
+
+  { id:18, nom:"Pin à crochets",         nomEn:"Mountain Pine",         latin:"Pinus uncinata",
+    fam:"Conifères", famEn:"Conifers", ic:"⛰️",
+    h:"10–25 m", age:"400–600 ans", ageEn:"400–600 years",
+    hab:"Haute montagne", habEn:"High mountain",
+    reg:"Pyrénées, Alpes", regEn:"Pyrenees, Alps",
+    us:["Protection des sols","Paysage"], usEn:["Soil protection","Landscaping"],
+    an:"Pousse là où aucun autre arbre ne survit, jusqu'à 2 500 m d'altitude. Ses cônes munis de crochets lui donnent son nom.",
+    anEn:"Grows where no other tree survives, up to 2,500 m altitude. Its hooked cones give it its name.",
+    wiki:"Pinus_mugo", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[6,7], fr:[10,11,12], co:[] },
+
+  { id:19, nom:"Cèdre de l'Atlas",       nomEn:"Atlas Cedar",           latin:"Cedrus atlantica",
+    fam:"Conifères", famEn:"Conifers", ic:"🌲",
+    h:"25–40 m", age:"200–400 ans", ageEn:"200–400 years",
+    hab:"Sols calcaires secs", habEn:"Dry limestone soils",
+    reg:"Luberon, Ventoux", regEn:"Luberon, Ventoux",
+    us:["Bois précieux","Ornemental"], usEn:["Precious wood","Ornamental"],
+    an:"Introduit en France au XIXe siècle, il colonise aujourd'hui naturellement les pentes du Mont Ventoux, démontrant son remarquable pouvoir d'adaptation.",
+    anEn:"Introduced to France in the 19th century, it now naturally colonizes Mont Ventoux slopes, demonstrating remarkable adaptation.",
+    wiki:"Cedrus_atlantica", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[9,10], fr:[11,12,1,2], co:[] },
+
+  { id:20, nom:"Genévrier commun",       nomEn:"Common Juniper",        latin:"Juniperus communis",
+    fam:"Conifères", famEn:"Conifers", ic:"🌿",
+    h:"1–8 m", age:"200–600 ans", ageEn:"200–600 years",
+    hab:"Landes et pelouses", habEn:"Heaths and grasslands",
+    reg:"Toute la France", regEn:"All of France",
+    us:["Gin (baies)","Cuisine","Médecine"], usEn:["Gin (berries)","Cooking","Medicine"],
+    an:"Le mot 'gin' vient du français 'genièvre'. Les baies de genévrier aromatisent le gin depuis le XVIIe siècle.",
+    anEn:"The word 'gin' comes from French 'genièvre'. Juniper berries have flavoured gin since the 17th century.",
+    wiki:"Juniperus_communis", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[4,5], fr:[10,11,12,1,2], co:[] },
+
+  // ── Fruitiers sauvages ─────────────────────
+  { id:21, nom:"Merisier",              nomEn:"Wild Cherry",           latin:"Prunus avium",
+    fam:"Fruitiers sauvages", famEn:"Wild Fruit Trees", ic:"🍒",
+    h:"15–30 m", age:"80–120 ans", ageEn:"80–120 years",
+    hab:"Lisières et haies", habEn:"Forest edges and hedges",
+    reg:"Toute la France", regEn:"All of France",
+    us:["Ébénisterie","Cerises","Liqueur"], usEn:["Cabinet-making","Cherries","Liqueur"],
+    an:"Ancêtre de toutes les cerises cultivées. Son bois rougeâtre est parmi les plus beaux de nos forêts, très prisé des ébénistes.",
+    anEn:"Ancestor of all cultivated cherries. Its reddish wood is among the most beautiful in French forests, prized by cabinet-makers.",
+    wiki:"Prunus_avium", fe:[4,5,6,7,8,9,10], fl:[4,5], fr:[6,7], co:[9,10] },
+
+  { id:22, nom:"Pommier sauvage",       nomEn:"Crab Apple",            latin:"Malus sylvestris",
+    fam:"Fruitiers sauvages", famEn:"Wild Fruit Trees", ic:"🍎",
+    h:"5–10 m", age:"80–100 ans", ageEn:"80–100 years",
+    hab:"Haies et lisières", habEn:"Hedges and edges",
+    reg:"Nord et Centre", regEn:"North and Centre",
+    us:["Cidre","Gelée","Faune (habitat)"], usEn:["Cider","Jelly","Wildlife (habitat)"],
+    an:"Ancêtre de toutes les pommes cultivées, il produit de petites pommes très acides, excellentes pour le cidre artisanal et les gelées.",
+    anEn:"Ancestor of all cultivated apples, it produces small very acidic fruits, excellent for craft cider and jellies.",
+    wiki:"Malus_sylvestris", fe:[4,5,6,7,8,9,10], fl:[4,5], fr:[8,9,10], co:[10,11] },
+
+  { id:23, nom:"Poirier sauvage",       nomEn:"Wild Pear",             latin:"Pyrus pyraster",
+    fam:"Fruitiers sauvages", famEn:"Wild Fruit Trees", ic:"🍐",
+    h:"8–20 m", age:"100–150 ans", ageEn:"100–150 years",
+    hab:"Lisières et haies sèches", habEn:"Dry edges and hedges",
+    reg:"Centre et Sud", regEn:"Centre and South",
+    us:["Instruments","Ébénisterie","Poires sauvages"], usEn:["Instruments","Cabinet-making","Wild pears"],
+    an:"Son bois très fin et homogène était utilisé pour fabriquer des instruments de mesure et les règles d'imprimerie au XIXe siècle.",
+    anEn:"Its very fine and homogeneous wood was used to make measuring instruments and printer's rules in the 19th century.",
+    wiki:"Pyrus_pyraster", fe:[4,5,6,7,8,9,10], fl:[4,5], fr:[8,9,10], co:[10,11] },
+
+  { id:24, nom:"Cormier",              nomEn:"True Service Tree",     latin:"Sorbus domestica",
+    fam:"Fruitiers sauvages", famEn:"Wild Fruit Trees", ic:"🍑",
+    h:"10–20 m", age:"200–400 ans", ageEn:"200–400 years",
+    hab:"Collines ensoleillées", habEn:"Sunny hills",
+    reg:"Centre et Sud", regEn:"Centre and South",
+    us:["Bois de luxe","Cormes (cidre)"], usEn:["Luxury wood","Sorb apples (cider)"],
+    an:"Produit le bois le plus dur de nos forêts françaises. Ses cormes, petits fruits acides, servaient à faire un cidre original.",
+    anEn:"Produces the hardest wood in French forests. Its sorb apples were once used to make a unique cider.",
+    wiki:"Sorbus_domestica", fe:[4,5,6,7,8,9,10], fl:[5,6], fr:[9,10], co:[10,11] },
+
+  { id:25, nom:"Alisier torminal",     nomEn:"Wild Service Tree",     latin:"Sorbus torminalis",
+    fam:"Fruitiers sauvages", famEn:"Wild Fruit Trees", ic:"🍂",
+    h:"10–25 m", age:"150–200 ans", ageEn:"150–200 years",
+    hab:"Forêts calcaires", habEn:"Limestone forests",
+    reg:"Centre, Bourgogne", regEn:"Centre, Burgundy",
+    us:["Ébénisterie","Alcool de torme"], usEn:["Cabinet-making","Berry spirits"],
+    an:"Indicateur précieux de l'ancienneté des forêts : sa présence signale des boisements non défrichés depuis plusieurs siècles.",
+    anEn:"A valuable indicator of ancient woodland: its presence signals forests undisturbed for centuries.",
+    wiki:"Sorbus_torminalis", fe:[4,5,6,7,8,9,10], fl:[5,6], fr:[9,10], co:[10,11] },
+
+  { id:26, nom:"Sorbier des oiseleurs",nomEn:"Rowan",                 latin:"Sorbus aucuparia",
+    fam:"Fruitiers sauvages", famEn:"Wild Fruit Trees", ic:"🔴",
+    h:"8–15 m", age:"80–120 ans", ageEn:"80–120 years",
+    hab:"Montagne et lisières", habEn:"Mountain and edges",
+    reg:"Massif central, Alpes", regEn:"Massif Central, Alps",
+    us:["Baies (oiseaux)","Alcool","Ornemental"], usEn:["Berries (birds)","Spirits","Ornamental"],
+    an:"Son nom vient des oiseleurs qui utilisaient ses baies pour attirer les oiseaux. Ses baies rouge vif sont très riches en vitamine C.",
+    anEn:"Named after bird-catchers who used its berries as bait. Its bright red berries are very rich in vitamin C.",
+    wiki:"Sorbus_aucuparia", fe:[4,5,6,7,8,9,10], fl:[5,6], fr:[8,9,10], co:[10,11] },
+
+  { id:27, nom:"Néflier",             nomEn:"Common Medlar",         latin:"Mespilus germanica",
+    fam:"Fruitiers sauvages", famEn:"Wild Fruit Trees", ic:"🟤",
+    h:"3–8 m", age:"50–100 ans", ageEn:"50–100 years",
+    hab:"Lisières et haies", habEn:"Edges and hedges",
+    reg:"Centre et Sud-Ouest", regEn:"Centre and South-West",
+    us:["Nèfles (confiture)","Ornemental"], usEn:["Medlars (jam)","Ornamental"],
+    an:"Les nèfles ne sont comestibles qu'après les premières gelées qui les 'blettissent'. Shakespeare en fit une métaphore dans plusieurs pièces.",
+    anEn:"Medlars are only edible after the first frosts that 'blet' them. Shakespeare used them as a metaphor in several plays.",
+    wiki:"Mespilus_germanica", fe:[4,5,6,7,8,9,10], fl:[5,6], fr:[10,11,12], co:[10,11] },
+
+  { id:28, nom:"Amélanchier",         nomEn:"Snowy Mespilus",        latin:"Amelanchier ovalis",
+    fam:"Fruitiers sauvages", famEn:"Wild Fruit Trees", ic:"⚪",
+    h:"2–5 m", age:"50–100 ans", ageEn:"50–100 years",
+    hab:"Rochers calcaires", habEn:"Limestone rocks",
+    reg:"Alpes, Pyrénées", regEn:"Alps, Pyrenees",
+    us:["Baies comestibles","Ornemental"], usEn:["Edible berries","Ornamental"],
+    an:"Premier arbre à fleurir en montagne dès fin mars. Ses petites baies bleu-noir sucrées sont très appréciées des oiseaux et des randonneurs.",
+    anEn:"First mountain tree to flower from late March. Its sweet blue-black berries are loved by birds and hikers.",
+    wiki:"Amelanchier_ovalis", fe:[4,5,6,7,8,9,10], fl:[3,4,5], fr:[6,7,8], co:[10,11] },
+
+  // ── Bois tendres & Ripisylves ──────────────
+  { id:29, nom:"Frêne commun",         nomEn:"Common Ash",            latin:"Fraxinus excelsior",
+    fam:"Bois tendres & Ripisylves", famEn:"Softwoods & Riparian", ic:"💧",
+    h:"20–40 m", age:"200–250 ans", ageEn:"200–250 years",
+    hab:"Bords de cours d'eau", habEn:"Riverside",
+    reg:"Toute la France", regEn:"All of France",
+    us:["Manches d'outils","Sport","Chauffage"], usEn:["Tool handles","Sports","Firewood"],
+    an:"Yggdrasil, l'arbre-monde de la mythologie nordique, est un frêne. Son bois flexible absorbant les chocs était idéal pour les manches de hache.",
+    anEn:"Yggdrasil, the world-tree of Norse mythology, is an ash. Its flexible shock-absorbing wood was ideal for axe handles.",
+    wiki:"Fraxinus_excelsior", fe:[5,6,7,8,9,10], fl:[4,5], fr:[9,10,11], co:[10,11] },
+
+  { id:30, nom:"Aulne glutineux",      nomEn:"Black Alder",           latin:"Alnus glutinosa",
+    fam:"Bois tendres & Ripisylves", famEn:"Softwoods & Riparian", ic:"💧",
+    h:"15–25 m", age:"100–150 ans", ageEn:"100–150 years",
+    hab:"Berges et zones humides", habEn:"Riverbanks and wetlands",
+    reg:"Toute la France", regEn:"All of France",
+    us:["Palissades","Sabots","Papier"], usEn:["Piling","Clogs","Paper"],
+    an:"Venise est construite sur des millions de pieux d'aulne. Le bois d'aulne, imputrescible dans l'eau, durcit en vieillissant sous les eaux.",
+    anEn:"Venice is built on millions of alder piles. Alder wood, which doesn't rot in water, actually hardens with age underwater.",
+    wiki:"Alnus_glutinosa", fe:[4,5,6,7,8,9,10], fl:[2,3,4], fr:[9,10,11,12], co:[] },
+
+  { id:31, nom:"Saule blanc",          nomEn:"White Willow",          latin:"Salix alba",
+    fam:"Bois tendres & Ripisylves", famEn:"Softwoods & Riparian", ic:"🌊",
+    h:"15–25 m", age:"80–100 ans", ageEn:"80–100 years",
+    hab:"Berges et prairies humides", habEn:"Riverbanks and wet meadows",
+    reg:"Toute la France", regEn:"All of France",
+    us:["Osier","Aspirine (écorce)","Cricket"], usEn:["Wickerwork","Aspirin (bark)","Cricket bats"],
+    an:"L'écorce de saule contient la salicine, précurseur de l'aspirine. L'une des premières plantes médicinales connues, utilisée depuis l'Antiquité.",
+    anEn:"Willow bark contains salicin, the precursor to aspirin. One of the first known medicinal plants, used since Antiquity.",
+    wiki:"Salix_alba", fe:[4,5,6,7,8,9,10], fl:[3,4,5], fr:[5,6,7], co:[] },
+
+  { id:32, nom:"Peuplier blanc",       nomEn:"White Poplar",          latin:"Populus alba",
+    fam:"Bois tendres & Ripisylves", famEn:"Softwoods & Riparian", ic:"🌿",
+    h:"20–35 m", age:"100–200 ans", ageEn:"100–200 years",
+    hab:"Plaines alluviales", habEn:"Alluvial plains",
+    reg:"Centre, Val de Loire", regEn:"Centre, Loire Valley",
+    us:["Contreplaqué","Allumettes","Papier"], usEn:["Plywood","Matches","Paper"],
+    an:"Ses feuilles sont bicolores : vertes dessus, blanches et duveteuses dessous. Le moindre vent les fait scintiller comme de l'argent.",
+    anEn:"Its leaves are two-toned: green above, white and downy below. The slightest breeze makes them shimmer like silver.",
+    wiki:"Populus_alba", fe:[4,5,6,7,8,9,10], fl:[3,4], fr:[5,6], co:[] },
+
+  { id:33, nom:"Peuplier tremble",     nomEn:"Aspen",                 latin:"Populus tremula",
+    fam:"Bois tendres & Ripisylves", famEn:"Softwoods & Riparian", ic:"💨",
+    h:"15–25 m", age:"80–150 ans", ageEn:"80–150 years",
+    hab:"Clairières et landes", habEn:"Clearings and heaths",
+    reg:"Toute la France", regEn:"All of France",
+    us:["Allumettes","Papier","Contreplaqué"], usEn:["Matches","Paper","Plywood"],
+    an:"Tremble au moindre souffle d'air grâce à ses pétioles aplatis. L'un des premiers arbres à recoloniser une forêt après un incendie.",
+    anEn:"Trembles in the slightest breeze thanks to its flattened leaf stalks. One of the first trees to recolonize a forest after fire.",
+    wiki:"Populus_tremula", fe:[4,5,6,7,8,9,10], fl:[3,4], fr:[4,5,6], co:[10,11] },
+
+  { id:34, nom:"Bouleau verruqueux",   nomEn:"Silver Birch",          latin:"Betula pendula",
+    fam:"Bois tendres & Ripisylves", famEn:"Softwoods & Riparian", ic:"🤍",
+    h:"15–25 m", age:"80–120 ans", ageEn:"80–120 years",
+    hab:"Sols pauvres, landes", habEn:"Poor soils and heaths",
+    reg:"Nord, Massif central", regEn:"North, Massif Central",
+    us:["Parquet","Sève (boisson)","Bois énergie"], usEn:["Flooring","Sap (drink)","Energy wood"],
+    an:"La sève de bouleau, récoltée au printemps, est une boisson tonique traditionnelle. Un arbre peut en perdre jusqu'à 200 litres en quelques semaines.",
+    anEn:"Birch sap, harvested in spring, is a traditional tonic drink. One tree can lose up to 200 litres in a few weeks.",
+    wiki:"Betula_pendula", fe:[4,5,6,7,8,9,10], fl:[3,4,5], fr:[8,9,10], co:[10,11] },
+
+  { id:35, nom:"Orme champêtre",       nomEn:"Field Elm",             latin:"Ulmus minor",
+    fam:"Bois tendres & Ripisylves", famEn:"Softwoods & Riparian", ic:"🌳",
+    h:"15–30 m", age:"150–300 ans", ageEn:"150–300 years",
+    hab:"Haies et berges", habEn:"Hedges and riverbanks",
+    reg:"Centre et Midi", regEn:"Centre and South",
+    us:["Charronnage","Menuiserie"], usEn:["Wheel-making","Carpentry"],
+    an:"La graphiose a décimé 90% des ormes européens au XXe siècle. Des programmes de reboisement avec des variétés résistantes sont en cours.",
+    anEn:"Dutch elm disease killed 90% of European elms in the 20th century. Replanting programmes with resistant varieties are underway.",
+    wiki:"Ulmus_minor", fe:[4,5,6,7,8,9,10], fl:[2,3,4], fr:[4,5,6], co:[10,11] },
+
+  { id:36, nom:"Saule marsault",       nomEn:"Goat Willow",           latin:"Salix caprea",
+    fam:"Bois tendres & Ripisylves", famEn:"Softwoods & Riparian", ic:"🐝",
+    h:"5–10 m", age:"30–60 ans", ageEn:"30–60 years",
+    hab:"Lisières humides", habEn:"Moist edges",
+    reg:"Toute la France", regEn:"All of France",
+    us:["Osier","Apiculture","Bois énergie"], usEn:["Wicker","Beekeeping","Energy wood"],
+    an:"L'un des premiers arbres à fleurir au printemps dès février. Ses chatons fournissent un nectar précieux aux abeilles à leur réveil hivernal.",
+    anEn:"One of the first trees to flower in spring from February. Its catkins provide precious nectar to bees awakening from winter.",
+    wiki:"Salix_caprea", fe:[3,4,5,6,7,8,9,10], fl:[2,3,4], fr:[4,5,6], co:[] },
+
+  // ── Méditerranéens ─────────────────────────
+  { id:37, nom:"Chêne liège",          nomEn:"Cork Oak",              latin:"Quercus suber",
+    fam:"Méditerranéens", famEn:"Mediterranean", ic:"🍾",
+    h:"10–20 m", age:"200–300 ans", ageEn:"200–300 years",
+    hab:"Sables siliceux", habEn:"Siliceous sands",
+    reg:"Corse, Var, Pyrénées-Or.", regEn:"Corsica, Var, Eastern Pyrenees",
+    us:["Liège (bouchons)","Isolation","Planchers"], usEn:["Cork (stoppers)","Insulation","Flooring"],
+    an:"Son écorce (le liège) peut être récoltée tous les 9 ans sans abîmer l'arbre. Un chêne liège peut être débardé une vingtaine de fois dans sa vie.",
+    anEn:"Its bark (cork) can be harvested every 9 years without harming the tree. A cork oak can be stripped about twenty times in its lifetime.",
+    wiki:"Quercus_suber", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[4,5], fr:[10,11], co:[] },
+
+  { id:38, nom:"Chêne vert",           nomEn:"Holm Oak",              latin:"Quercus ilex",
+    fam:"Méditerranéens", famEn:"Mediterranean", ic:"🌿",
+    h:"8–20 m", age:"300–500 ans", ageEn:"300–500 years",
+    hab:"Garrigues et maquis", habEn:"Garrigue and maquis",
+    reg:"Pourtour méditerranéen", regEn:"Mediterranean coast",
+    us:["Charbon","Glands (porcs)","Truffes"], usEn:["Charcoal","Acorns (pigs)","Truffles"],
+    an:"Symbole de la résistance méditerranéenne : il survit aux incendies grâce à ses racines profondes et repousse rapidement après le feu.",
+    anEn:"Symbol of Mediterranean resilience: it survives fires thanks to deep roots and regrows rapidly after burning.",
+    wiki:"Quercus_ilex", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[4,5], fr:[10,11,12], co:[] },
+
+  { id:39, nom:"Olivier sauvage",      nomEn:"Wild Olive",            latin:"Olea europaea var. sylvestris",
+    fam:"Méditerranéens", famEn:"Mediterranean", ic:"🫒",
+    h:"5–10 m", age:"500–1000 ans", ageEn:"500–1000 years",
+    hab:"Garrigue sèche", habEn:"Dry garrigue",
+    reg:"Hérault, Var, Corse", regEn:"Hérault, Var, Corsica",
+    us:["Huile d'olive","Bois précieux","Cuisine"], usEn:["Olive oil","Precious wood","Cooking"],
+    an:"L'olivier de Roquebrune-Cap-Martin (Alpes-Maritimes) aurait plus de 2 000 ans, ce qui en ferait potentiellement le plus vieil arbre de France.",
+    anEn:"The olive tree of Roquebrune-Cap-Martin is said to be over 2,000 years old, potentially making it France's oldest tree.",
+    wiki:"Olea_europaea", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[5,6], fr:[10,11,12], co:[] },
+
+  { id:40, nom:"Pin d'Alep",           nomEn:"Aleppo Pine",           latin:"Pinus halepensis",
+    fam:"Méditerranéens", famEn:"Mediterranean", ic:"🔥",
+    h:"10–25 m", age:"100–200 ans", ageEn:"100–200 years",
+    hab:"Garrigues sèches", habEn:"Dry garrigue",
+    reg:"Méditerranée", regEn:"Mediterranean",
+    us:["Résine","Bois","Paysage"], usEn:["Resin","Timber","Landscaping"],
+    an:"Pin pyrophyte : ses cônes s'ouvrent sous la chaleur des incendies pour libérer ses graines. Le feu fait partie intégrante de son cycle de vie.",
+    anEn:"A pyrophytic pine: its cones open in fire heat to release seeds. Fire is an integral part of its life cycle.",
+    wiki:"Pinus_halepensis", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[3,4,5], fr:[10,11,12], co:[] },
+
+  { id:41, nom:"Arbousier",            nomEn:"Strawberry Tree",       latin:"Arbutus unedo",
+    fam:"Méditerranéens", famEn:"Mediterranean", ic:"🍓",
+    h:"3–10 m", age:"100–200 ans", ageEn:"100–200 years",
+    hab:"Maquis et sous-bois", habEn:"Maquis and understory",
+    reg:"Corse, Var, Bretagne", regEn:"Corsica, Var, Brittany",
+    us:["Arbouses (alcool)","Miel","Ornemental"], usEn:["Berries (spirits)","Honey","Ornamental"],
+    an:"Fleurit et fructifie simultanément en automne. Ses fruits mettent un an à mûrir. Le latin 'unedo' (j'en mange un) suggère qu'ils ne sont pas délicieux crus.",
+    anEn:"Flowers and fruits simultaneously in autumn. Its fruits take a year to ripen. Latin 'unedo' (I eat one) suggests the raw fruit isn't delicious.",
+    wiki:"Arbutus_unedo", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[10,11,12], fr:[10,11,12,1], co:[] },
+
+  { id:42, nom:"Pistachier térébinthe",nomEn:"Terebinth",             latin:"Pistacia terebinthus",
+    fam:"Méditerranéens", famEn:"Mediterranean", ic:"🫚",
+    h:"3–7 m", age:"100–200 ans", ageEn:"100–200 years",
+    hab:"Garrigues rocailleuses", habEn:"Rocky garrigue",
+    reg:"Hérault, Var", regEn:"Hérault, Var",
+    us:["Résine (térébenthine)","Vernis","Mastic"], usEn:["Resin (turpentine)","Varnish","Mastic"],
+    an:"Ancêtre sauvage de la pistache cultivée. Sa résine, la térébenthine, fut le solvant des peintres depuis la Renaissance.",
+    anEn:"Wild ancestor of the cultivated pistachio. Its resin, turpentine, was painters' solvent since the Renaissance.",
+    wiki:"Pistacia_terebinthus", fe:[4,5,6,7,8,9,10], fl:[4,5,6], fr:[8,9,10], co:[10,11] },
+
+  { id:43, nom:"Filaire à larges feuilles",nomEn:"Broad-leaved Phillyrea",latin:"Phillyrea latifolia",
+    fam:"Méditerranéens", famEn:"Mediterranean", ic:"🌿",
+    h:"3–8 m", age:"100–150 ans", ageEn:"100–150 years",
+    hab:"Maquis et garrigue", habEn:"Maquis and garrigue",
+    reg:"Corse, PACA", regEn:"Corsica, PACA",
+    us:["Bois dur","Charbon"], usEn:["Hard wood","Charcoal"],
+    an:"Utilisée en Provence pour ses branches flexibles servant à faire des liens et des corbeilles. Son bois très dur résiste parfaitement au feu.",
+    anEn:"Used in Provence for its flexible branches to make ties and baskets. Its very hard wood resists fire exceptionally well.",
+    wiki:"Phillyrea_latifolia", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[4,5,6], fr:[9,10,11], co:[] },
+
+  { id:44, nom:"Chêne kermès",         nomEn:"Kermes Oak",            latin:"Quercus coccifera",
+    fam:"Méditerranéens", famEn:"Mediterranean", ic:"🔴",
+    h:"1–3 m", age:"100–200 ans", ageEn:"100–200 years",
+    hab:"Garrigue très sèche", habEn:"Very dry garrigue",
+    reg:"Languedoc, Provence", regEn:"Languedoc, Provence",
+    us:["Cochenille (teinture)","Charbon"], usEn:["Kermes (dye)","Charcoal"],
+    an:"Abritait la cochenille kermès, insecte dont on extrayait une teinture écarlate précieuse pour les vêtements royaux au Moyen Âge.",
+    anEn:"Once harboured the kermes insect, from which a precious scarlet dye was extracted for medieval royal garments.",
+    wiki:"Quercus_coccifera", fe:[1,2,3,4,5,6,7,8,9,10,11,12], fl:[4,5], fr:[10,11,12], co:[] },
+
+  // ── Ornemental indigène ────────────────────
+  { id:45, nom:"Tilleul à grandes feuilles",nomEn:"Large-leaved Lime",latin:"Tilia platyphyllos",
+    fam:"Ornement indigène", famEn:"Native Ornamental", ic:"🌸",
+    h:"20–40 m", age:"500–1000 ans", ageEn:"500–1000 years",
+    hab:"Forêts et parcs", habEn:"Forests and parks",
+    reg:"Centre et Est", regEn:"Centre and East",
+    us:["Tisane (fleurs)","Bois de sculpture","Miel"], usEn:["Herbal tea (flowers)","Carving wood","Honey"],
+    an:"Le tilleul de Sully, planté à Nogent-sur-Vernisson en 1601, est classé arbre remarquable. Le tilleul fleurit en juin et attire des milliers d'abeilles.",
+    anEn:"The Sully lime, planted at Nogent-sur-Vernisson in 1601, is listed as a remarkable tree. It flowers in June attracting thousands of bees.",
+    wiki:"Tilia_platyphyllos", fe:[4,5,6,7,8,9,10], fl:[6,7], fr:[8,9], co:[10,11] },
+
+  { id:46, nom:"Tilleul à petites feuilles",nomEn:"Small-leaved Lime",latin:"Tilia cordata",
+    fam:"Ornement indigène", famEn:"Native Ornamental", ic:"🌼",
+    h:"15–30 m", age:"500–800 ans", ageEn:"500–800 years",
+    hab:"Forêts et villages", habEn:"Forests and villages",
+    reg:"Toute la France", regEn:"All of France",
+    us:["Tisane","Abeilles","Sculpture"], usEn:["Herbal tea","Bees","Carving"],
+    an:"Planté sur les places de village depuis le Moyen Âge. Ses fleurs séchées constituent la tisane la plus vendue en pharmacie française.",
+    anEn:"Planted in village squares since the Middle Ages. Its dried flowers are the most sold herbal tea in French pharmacies.",
+    wiki:"Tilia_cordata", fe:[4,5,6,7,8,9,10], fl:[6,7], fr:[8,9], co:[10,11] },
+
+  { id:47, nom:"Érable sycomore",      nomEn:"Sycamore Maple",        latin:"Acer pseudoplatanus",
+    fam:"Ornement indigène", famEn:"Native Ornamental", ic:"🍁",
+    h:"20–35 m", age:"200–400 ans", ageEn:"200–400 years",
+    hab:"Montagne et parcs", habEn:"Mountain and parks",
+    reg:"Est, Alpes, Pyrénées", regEn:"East, Alps, Pyrenees",
+    us:["Lutherie","Parquet","Ornemental"], usEn:["Lutherie","Flooring","Ornamental"],
+    an:"Le dos et les éclisses des violons Stradivarius sont en érable sycomore flammé. Son grain ondulé crée un effet chatoyant unique.",
+    anEn:"The back and sides of Stradivarius violins are made of flamed sycamore maple. Its wavy grain creates a unique shimmering effect.",
+    wiki:"Acer_pseudoplatanus", fe:[4,5,6,7,8,9,10], fl:[4,5], fr:[9,10], co:[10,11] },
+
+  { id:48, nom:"Érable champêtre",     nomEn:"Field Maple",           latin:"Acer campestre",
+    fam:"Ornement indigène", famEn:"Native Ornamental", ic:"🍂",
+    h:"8–15 m", age:"100–150 ans", ageEn:"100–150 years",
+    hab:"Haies et lisières", habEn:"Hedges and edges",
+    reg:"Toute la France", regEn:"All of France",
+    us:["Haies","Bois de tour","Ornemental"], usEn:["Hedges","Turning wood","Ornamental"],
+    an:"Offre des couleurs d'automne spectaculaires, du vert au jaune d'or. L'un des érables les plus résistants au calcaire et à la pollution.",
+    anEn:"Offers spectacular autumn colours from green to golden yellow. One of the most lime-tolerant and pollution-resistant maples.",
+    wiki:"Acer_campestre", fe:[4,5,6,7,8,9,10], fl:[4,5], fr:[9,10], co:[10,11] },
+
+  { id:49, nom:"Platane commun",       nomEn:"London Plane",          latin:"Platanus × acerifolia",
+    fam:"Ornement indigène", famEn:"Native Ornamental", ic:"🌳",
+    h:"20–40 m", age:"200–400 ans", ageEn:"200–400 years",
+    hab:"Allées et cours d'eau", habEn:"Avenues and riversides",
+    reg:"Sud surtout", regEn:"Mainly South",
+    us:["Ombre (allées)","Bois d'œuvre","Ornemental"], usEn:["Shade (avenues)","Timber","Ornamental"],
+    an:"Le platane de l'île de Cos aurait été planté par Hippocrate au Ve s. av. J.-C. Les platanes des Champs-Élysées ont plus de 200 ans.",
+    anEn:"The plane tree of the island of Cos was reportedly planted by Hippocrates in the 5th century BC. The Champs-Élysées plane trees are over 200 years old.",
+    wiki:"Platanus_acerifolia", fe:[4,5,6,7,8,9,10], fl:[4,5], fr:[9,10,11], co:[10,11] },
+
+  { id:50, nom:"Robinier faux-acacia", nomEn:"Black Locust",          latin:"Robinia pseudoacacia",
+    fam:"Ornement indigène", famEn:"Native Ornamental", ic:"🌺",
+    h:"10–25 m", age:"100–150 ans", ageEn:"100–150 years",
+    hab:"Talus et friches", habEn:"Embankments and wasteland",
+    reg:"Toute la France", regEn:"All of France",
+    us:["Miel d'acacia","Poteaux","Parquet"], usEn:["Acacia honey","Poles","Flooring"],
+    an:"Le 'miel d'acacia' français est en réalité du miel de robinier. Introduit par Jean Robin (jardinier de Henri IV) en 1601, il est naturalisé partout.",
+    anEn:"French 'acacia honey' is actually black locust honey. Introduced by Jean Robin (Henri IV's gardener) in 1601, now naturalized throughout France.",
+    wiki:"Robinia_pseudoacacia", fe:[5,6,7,8,9,10], fl:[5,6], fr:[9,10,11], co:[10,11] }
+];
+
+const FAMILLES = [...new Set(ARBRES.map(a => a.fam))];
+const FAM_ICON = {
+  'Chênes & Hêtres':'🌳','Conifères':'🌲','Fruitiers sauvages':'🍎',
+  'Bois tendres & Ripisylves':'💧','Méditerranéens':'☀️','Ornement indigène':'🌸'
+};
+
+const FORETS = [
+  { nom:"Forêt des Landes", nomEn:"Landes Forest", x:174,y:343,
+    desc:"La plus grande forêt artificielle d'Europe (1M ha). Pin maritime à perte de vue, planté au XIXe pour assainir les marécages.",
+    descEn:"Europe's largest artificial forest (1M ha). Maritime pine as far as the eye can see, planted in the 19th century to drain marshes.",
+    ids:[15] },
+  { nom:"Fontainebleau", nomEn:"Fontainebleau", x:301,y:154,
+    desc:"28 000 ha de chênes et pins sylvestres. Inspiratrice de l'École de Barbizon (Millet, Corot, Rousseau).",
+    descEn:"28,000 ha of oaks and Scots pines. Inspired the Barbizon school of painting (Millet, Corot, Rousseau).",
+    ids:[1,12] },
+  { nom:"Forêt de Brocéliande", nomEn:"Brocéliande Forest", x:128,y:172,
+    desc:"Forêt légendaire du cycle arthurien en Bretagne. Hêtres et chênes centenaires de la forêt de Paimpont.",
+    descEn:"Legendary Arthurian forest in Brittany. Century-old beeches and oaks of the Paimpont forest.",
+    ids:[1,4] },
+  { nom:"Vosges", nomEn:"Vosges", x:450,y:162,
+    desc:"Massif de sapins et d'épicéas. Le sapin pectiné y atteint des dimensions exceptionnelles sur les versants nord.",
+    descEn:"Massif of firs and spruces. Silver fir reaches exceptional dimensions on north-facing slopes.",
+    ids:[11,13] },
+  { nom:"Jura", nomEn:"Jura", x:415,y:232,
+    desc:"Forêts mixtes d'épicéa, sapin et hêtre. Bois de haute qualité pour la lutherie crémonnaise.",
+    descEn:"Mixed forests of spruce, fir and beech. High-quality wood for Cremonese lutherie.",
+    ids:[13,11,4] },
+  { nom:"Alpes du Nord", nomEn:"Northern Alps", x:440,y:285,
+    desc:"Mélèzes et épicéas jusqu'à 2 400 m. Les forêts de mélèzes offrent des spectacles d'automne uniques.",
+    descEn:"Larches and spruces up to 2,400 m. Larch forests offer unique autumn displays.",
+    ids:[14,13] },
+  { nom:"Alpes du Sud", nomEn:"Southern Alps", x:437,y:343,
+    desc:"Pinèdes de pins sylvestres et cédraies du Ventoux. Le cèdre de l'Atlas y est désormais naturalisé.",
+    descEn:"Scots pine forests and cedar groves of Ventoux. The Atlas cedar is now naturalized here.",
+    ids:[12,19] },
+  { nom:"Pyrénées", nomEn:"Pyrenees", x:230,y:402,
+    desc:"Hêtraies-sapinières denses. Des ifs centenaires subsistent dans certaines vallées pyrénéennes.",
+    descEn:"Dense beech-fir forests. Centenarian yews survive in certain Pyrenean valleys.",
+    ids:[4,11,17] },
+  { nom:"Massif Central", nomEn:"Massif Central", x:305,y:288,
+    desc:"Châtaigneraies d'Ardèche et pinèdes de pins sylvestres. Des châtaigniers millénaires témoignent d'une histoire paysanne.",
+    descEn:"Ardèche chestnut groves and Scots pine forests. Thousand-year-old chestnuts bear witness to peasant history.",
+    ids:[6,12] },
+  { nom:"Normandie", nomEn:"Normandy", x:234,y:108,
+    desc:"Hêtraies-chênaies. La forêt de Lyons est l'une des plus belles hêtraies d'Europe.",
+    descEn:"Beech-oak forests. The Lyons forest is one of Europe's most beautiful beech forests.",
+    ids:[4,1] },
+  { nom:"Garrigue provençale", nomEn:"Provence Garrigue", x:355,y:368,
+    desc:"Chênes verts, pins d'Alep et garrigues aromatiques. Écosystème méditerranéen par excellence.",
+    descEn:"Holm oaks, Aleppo pines and aromatic garrigue. The quintessential Mediterranean ecosystem.",
+    ids:[38,40] },
+  { nom:"Corse", nomEn:"Corsica", x:495,y:412,
+    desc:"Île de beauté aux forêts de pins laricio et chênes lièges. Le pin laricio peut atteindre 50 m.",
+    descEn:"Island of beauty with laricio pine and cork oak forests. The laricio pine can reach 50 m.",
+    ids:[37,6] },
+  { nom:"Val de Loire", nomEn:"Loire Valley", x:266,y:186,
+    desc:"Chênaies royales d'Orléans et de Chambord. Peupliers de Loire, symbole du paysage ligérien.",
+    descEn:"Royal oak forests of Orléans and Chambord. Loire poplars, symbol of the Loire landscape.",
+    ids:[1,32] },
+];
+
+// ════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════
+let curScreen = 'accueil';
+function goTo(name, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sc-'+name).classList.add('active');
+  btn.classList.add('active');
+  curScreen = name;
+  render(name);
+}
+function render(n) {
+  if (n==='accueil')   renderAccueil();
+  if (n==='essences')  renderEssences();
+  if (n==='quiz')      { if (!quizState.ready) initQuiz(); }
+  if (n==='cal')       renderCal();
+  if (n==='carte')     renderCarte();
+}
+
+// ════════════════════════════════════════════
+//  LANG
+// ════════════════════════════════════════════
+function toggleLang() {
+  LANG.v = LANG.v==='fr' ? 'en' : 'fr';
+  document.getElementById('langBtn').textContent = LANG.v==='fr' ? '🇬🇧' : '🇫🇷';
+  document.getElementById('hdr-sub').textContent = T('Guide des 50 Essences','Guide to 50 Species');
+  document.getElementById('hero-p').textContent  = T('Découvrez les 50 essences indigènes,\nleurs secrets et leur histoire','Discover 50 native species,\ntheir secrets and history');
+  document.getElementById('st1').textContent = T('Essences','Species');
+  document.getElementById('st2').textContent = T('Familles','Families');
+  document.getElementById('st3').textContent = T('Forêts','Forests');
+  const navL = [T('Accueil','Home'),T('Essences','Species'),T('Quiz','Quiz'),T('Calendrier','Calendar'),T('Carte','Map')];
+  navL.forEach((l,i) => { const el=document.getElementById('nav'+i); if(el) el.textContent=l; });
+  if(document.getElementById('searchInput'))
+    document.getElementById('searchInput').placeholder = T('Rechercher un arbre…','Search a tree…');
+  render(curScreen);
+}
+
+// ════════════════════════════════════════════
+//  PORTRAIT LOADER
+// ════════════════════════════════════════════
+const imgCache = {};
+let lsOk = true;
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){lsOk=false;return null;}}
+function lsSet(k,v){try{if(lsOk)localStorage.setItem(k,v);}catch(e){lsOk=false;}}
+
+async function loadPortrait(a) {
+  if (imgCache[a.id]) { applyImg(a.id, imgCache[a.id]); return; }
+  const k = 'wt_'+a.id;
+  const cached = lsGet(k);
+  if (cached) { imgCache[a.id]=cached; applyImg(a.id, cached); return; }
+  try {
+    const r = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(a.wiki));
+    if (!r.ok) return;
+    const d = await r.json();
+    const src = d.thumbnail?.source;
+    if (src) { lsSet(k,src); imgCache[a.id]=src; applyImg(a.id, src); }
+  } catch(e) {}
+}
+function applyImg(id, src) {
+  const ic = ARBRES.find(a=>a.id===id)?.ic || '🌿';
+  ['th-'+id,'cth-'+id,'qimg-'+id,'dhero-'+id].forEach(elId => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    const rad = elId.startsWith('dhero') ? 'border-radius:0' : 'border-radius:inherit';
+    const img = document.createElement('img');
+    img.src = src;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;'+rad;
+    img.onerror = () => { el.innerHTML = ic; };
+    el.innerHTML = '';
+    el.appendChild(img);
+  });
+}
+
+// ════════════════════════════════════════════
+//  ACCUEIL
+// ════════════════════════════════════════════
+function renderAccueil() {
+  const el = document.getElementById('home-body');
+  el.innerHTML = FAMILLES.map(fam => {
+    const list = ARBRES.filter(a => a.fam===fam);
+    const famEn = list[0].famEn;
+    return `<div class="fam-title">${FAM_ICON[fam]||'🌿'} ${T(fam,famEn)}</div>
+      <div class="fam-scroll">
+        ${list.map(a=>`
+          <div class="mini-card" onclick="openDetail(${a.id})">
+            <div class="mini-thumb" id="th-${a.id}">${a.ic}</div>
+            <div class="mini-name">${T(a.nom,a.nomEn)}</div>
+          </div>`).join('')}
+      </div>`;
+  }).join('');
+  ARBRES.forEach(a => loadPortrait(a));
+}
+
+// ════════════════════════════════════════════
+//  ESSENCES
+// ════════════════════════════════════════════
+function renderEssences(q='') {
+  const list = document.getElementById('tree-list');
+  const src = q ? ARBRES.filter(a=>
+    a.nom.toLowerCase().includes(q.toLowerCase())||
+    a.nomEn.toLowerCase().includes(q.toLowerCase())||
+    a.latin.toLowerCase().includes(q.toLowerCase())
+  ) : ARBRES;
+
+  if (q) {
+    list.innerHTML = src.map(a=>cardHTML(a)).join('');
+  } else {
+    list.innerHTML = FAMILLES.map(fam=>{
+      const sub = src.filter(a=>a.fam===fam);
+      if (!sub.length) return '';
+      return `<div class="fam-title">${FAM_ICON[fam]||'🌿'} ${T(fam,sub[0].famEn)}</div>`
+        + sub.map(a=>cardHTML(a)).join('');
+    }).join('');
+  }
+  src.forEach(a=>loadPortrait(a));
+}
+function cardHTML(a) {
+  return `<div class="tree-card" onclick="openDetail(${a.id})">
+    <div class="tree-thumb" id="cth-${a.id}">${a.ic}</div>
+    <div class="tree-meta">
+      <h3>${T(a.nom,a.nomEn)}</h3>
+      <div class="lat">${a.latin}</div>
+      <div class="tags">
+        <span class="tag">↕ ${a.h}</span>
+        <span class="tag">⏳ ${T(a.age,a.ageEn)}</span>
+      </div>
+    </div>
+  </div>`;
+}
+function filterTrees(v) { renderEssences(v); }
+
+// ════════════════════════════════════════════
+//  DETAIL
+// ════════════════════════════════════════════
+function openDetail(id) {
+  const a = ARBRES.find(x=>x.id===id);
+  if (!a) return;
+  document.getElementById('det-title').textContent = T(a.nom,a.nomEn);
+  const ML = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+  const phen = ML.map((m,i)=>{
+    const mo=i+1;
+    let cls='';
+    if (a.co.includes(mo)) cls='co';
+    else if (a.fr.includes(mo)) cls='fr';
+    else if (a.fl.includes(mo)) cls='fl';
+    else if (a.fe.includes(mo)) cls='fe';
+    return `<div class="ph-cell"><div class="ph-lbl">${m}</div><div class="ph-bar ${cls}"></div></div>`;
+  }).join('');
+  const us = T(a.us,a.usEn);
+  document.getElementById('det-body').innerHTML = `
+    <div class="det-hero" id="dhero-${a.id}">${a.ic}</div>
+    <div class="det-body">
+      <h1>${T(a.nom,a.nomEn)}</h1>
+      <div class="det-lat">${a.latin}</div>
+      <div class="data-grid">
+        <div class="data-cell"><div class="dl">${T('Hauteur','Height')}</div><div class="dv">${a.h}</div></div>
+        <div class="data-cell"><div class="dl">${T('Longévité','Longevity')}</div><div class="dv">${T(a.age,a.ageEn)}</div></div>
+        <div class="data-cell"><div class="dl">${T('Habitat','Habitat')}</div><div class="dv">${T(a.hab,a.habEn)}</div></div>
+        <div class="data-cell"><div class="dl">${T('Régions','Regions')}</div><div class="dv">${T(a.reg,a.regEn)}</div></div>
+      </div>
+      <div class="sec-title">🗓 ${T('Calendrier de la nature','Nature calendar')}</div>
+      <div class="phenol-row">${phen}</div>
+      <div class="legend-row" style="margin-top:8px">
+        <div class="leg"><div class="leg-dot" style="background:#4a7c59"></div>${T('Feuilles','Leaves')}</div>
+        <div class="leg"><div class="leg-dot" style="background:#c4a35a"></div>${T('Floraison','Flowering')}</div>
+        <div class="leg"><div class="leg-dot" style="background:#8b4513"></div>${T('Fruits','Fruits')}</div>
+        <div class="leg"><div class="leg-dot" style="background:#c4622a"></div>${T('Couleurs','Colours')}</div>
+      </div>
+      <div class="sec-title">🔨 ${T('Usages','Uses')}</div>
+      <div class="usage-wrap">${us.map(u=>`<span class="usage-chip">${u}</span>`).join('')}</div>
+      <div class="sec-title">📖 ${T('Le saviez-vous ?','Did you know?')}</div>
+      <div class="anec">${T(a.an,a.anEn)}</div>
+    </div>`;
+  document.getElementById('detail').classList.add('open');
+  loadPortrait(a);
+}
+function closeDetail() { document.getElementById('detail').classList.remove('open'); }
+
+// ════════════════════════════════════════════
+//  QUIZ
+// ════════════════════════════════════════════
+const quizState = { score:0, total:0, answered:false, ready:false };
+function initQuiz() {
+  quizState.ready = true;
+  nextQuestion();
+}
+function nextQuestion() {
+  const wrap = document.getElementById('quiz-wrap');
+  const correct = ARBRES[Math.floor(Math.random()*ARBRES.length)];
+  const others = ARBRES.filter(a=>a.id!==correct.id).sort(()=>Math.random()-.5).slice(0,3);
+  const opts = [correct,...others].sort(()=>Math.random()-.5);
+  const qtypes = ['nom','latin','usage','age'];
+  const qt = qtypes[Math.floor(Math.random()*qtypes.length)];
+  let q;
+  if (qt==='latin')  q = T(`Quel arbre porte le nom latin <em>${correct.latin}</em> ?`,`Which tree has the Latin name <em>${correct.latin}</em>?`);
+  else if (qt==='usage') q = T(`Quel arbre est utilisé pour : ${T(correct.us,correct.usEn)[0]} ?`,`Which tree is used for: ${T(correct.us,correct.usEn)[0]}?`);
+  else if (qt==='age') q = T(`Quel arbre peut vivre ${correct.age} ?`,`Which tree can live ${correct.ageEn}?`);
+  else q = T('Identifiez cet arbre','Identify this tree');
+  quizState.answered = false;
+  wrap.innerHTML = `
+    <div class="score-strip">
+      <div class="sc"><div class="sn">${quizState.score}</div><div class="sl">${T('Points','Score')}</div></div>
+      <div class="sc"><div class="sn">${quizState.total}</div><div class="sl">${T('Joués','Played')}</div></div>
+      <div class="sc"><div class="sn">${quizState.total>0?Math.round(quizState.score/quizState.total*100):0}%</div><div class="sl">${T('Réussite','Success')}</div></div>
+    </div>
+    <div class="qcard">
+      <div class="q-img" id="qimg-${correct.id}">${correct.ic}</div>
+      <div class="q-text">${q}</div>
+      <div class="q-opts">
+        ${opts.map(o=>`<button class="q-opt" onclick="answer(${o.id===correct.id},this)">${T(o.nom,o.nomEn)}</button>`).join('')}
+      </div>
+    </div>
+    <button class="q-next" id="q-next" onclick="nextQuestion()" style="display:none">${T('Question suivante →','Next question →')}</button>`;
+  const cached = imgCache[correct.id] || localStorage.getItem('wt_'+correct.id);
+  if (cached) applyImg(correct.id, cached);
+  else loadPortrait(correct);
+}
+function answer(ok, btn) {
+  if (quizState.answered) return;
+  quizState.answered = true; quizState.total++;
+  if (ok) { quizState.score++; btn.classList.add('ok'); }
+  else {
+    btn.classList.add('bad');
+    document.querySelectorAll('.q-opt').forEach(b=>{ if(b!==btn) b.classList.add('ok'); });
+  }
+  document.querySelectorAll('.q-opt').forEach(b=>b.style.pointerEvents='none');
+  document.getElementById('q-next').style.display='block';
+}
+
+// ════════════════════════════════════════════
+//  CALENDRIER
+// ════════════════════════════════════════════
+function renderCal() {
+  const ML = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+  const colMap = { fe:'#4a7c59', fl:'#c4a35a', fr:'#8b4513', co:'#c4622a' };
+  document.getElementById('cal-wrap').innerHTML = `
+    <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--gold);margin-bottom:3px">${T('Calendrier phénologique','Phenological Calendar')}</div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:12px">${T('Cycle annuel des 50 essences','Annual cycle of 50 species')}</div>
+    <div class="legend-row" style="margin-bottom:12px">
+      <div class="leg"><div class="leg-dot" style="background:#4a7c59"></div>${T('Feuilles','Leaves')}</div>
+      <div class="leg"><div class="leg-dot" style="background:#c4a35a"></div>${T('Floraison','Flowering')}</div>
+      <div class="leg"><div class="leg-dot" style="background:#8b4513"></div>${T('Fruits','Fruits')}</div>
+      <div class="leg"><div class="leg-dot" style="background:#c4622a"></div>${T('Couleurs','Colours')}</div>
+    </div>
+    <div class="cal-hdr-row">
+      <div class="cal-name-col"></div>
+      <div class="cal-months">${ML.map(m=>`<div class="cal-mlbl">${m}</div>`).join('')}</div>
+    </div>
+    ${ARBRES.map(a=>`
+      <div class="cal-row" onclick="openDetail(${a.id})">
+        <div class="cal-name">${T(a.nom,a.nomEn)}</div>
+        <div class="cal-bars">
+          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(mo=>{
+            let bg='var(--bg2)';
+            if (a.co.includes(mo)) bg=colMap.co;
+            else if (a.fr.includes(mo)) bg=colMap.fr;
+            else if (a.fl.includes(mo)) bg=colMap.fl;
+            else if (a.fe.includes(mo)) bg=colMap.fe;
+            return `<div class="cb" style="background:${bg}"></div>`;
+          }).join('')}
+        </div>
+      </div>`).join('')}`;
+}
+
+// ════════════════════════════════════════════
+//  CARTE
+// ════════════════════════════════════════════
+function renderCarte() {
+  document.getElementById('carte-wrap').innerHTML = `
+    <div class="carte-ttl">🗺 ${T('Forêts de France','Forests of France')}</div>
+    <svg class="map" viewBox="0 0 520 460">
+      <defs>
+        <filter id="glow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <!-- France métropolitaine — projection géographique réelle -->
+      <!-- Dunkerque → frontière belge → Luxembourg → Alsace/Rhin → Jura → Alpes → Côte d'Azur → Méditerranée → Pyrénées → Atlantique → Bretagne → Cotentin → Normandie -->
+      <path fill="#0d1a0e" stroke="#2e4a30" stroke-width="1.6" stroke-linejoin="round"
+        d="M290,32 L297,30 L378,74 L432,105 L457,115 L482,146 L476,193 C460,210 445,218 432,226 C425,240 425,250 425,256 C440,264 455,268 455,272 C450,295 445,308 442,315 C455,340 462,355 465,370 C440,380 418,385 397,389 C365,387 350,386 338,384 C320,400 315,415 309,417 C315,425 318,428 319,429 C270,423 245,420 224,408 C180,405 160,393 143,386 C155,360 163,340 163,326 C166,308 168,295 168,285 C166,270 165,262 165,257 C148,230 135,215 128,206 C108,196 95,190 86,184 C66,183 55,182 51,182 C47,168 46,160 46,154 C42,154 38,154 35,154 C48,148 58,146 69,146 C85,143 93,140 97,137 C112,140 120,141 123,141 L135,142 L151,122 L142,103 L148,97 L161,95 L174,117 C192,113 200,111 208,109 C228,96 236,89 244,84 C253,61 260,48 262,40 L272,37 L290,32 Z"/>
+      <!-- Halo vert sur le contour -->
+      <path fill="none" stroke="#4a7c59" stroke-width="0.7" opacity="0.5"
+        d="M290,32 L297,30 L378,74 L432,105 L457,115 L482,146 L476,193 C460,210 445,218 432,226 C425,240 425,250 425,256 C440,264 455,268 455,272 C450,295 445,308 442,315 C455,340 462,355 465,370 C440,380 418,385 397,389 C365,387 350,386 338,384 C320,400 315,415 309,417 C315,425 318,428 319,429 C270,423 245,420 224,408 C180,405 160,393 143,386 C155,360 163,340 163,326 C166,308 168,295 168,285 C166,270 165,262 165,257 C148,230 135,215 128,206 C108,196 95,190 86,184 C66,183 55,182 51,182 C47,168 46,160 46,154 C42,154 38,154 35,154 C48,148 58,146 69,146 C85,143 93,140 97,137 C112,140 120,141 123,141 L135,142 L151,122 L142,103 L148,97 L161,95 L174,117 C192,113 200,111 208,109 C228,96 236,89 244,84 C253,61 260,48 262,40 L272,37 L290,32 Z"/>
+      <!-- Corse (hors projection, positionnée SE) -->
+      <ellipse cx="495" cy="412" rx="14" ry="22" fill="#0d1a0e" stroke="#2e4a30" stroke-width="1.4"/>
+      <ellipse cx="495" cy="412" rx="14" ry="22" fill="none" stroke="#4a7c59" stroke-width="0.5" opacity="0.4"/>
+      <!-- Forêts -->
+      ${FORETS.map((f,i)=>`
+        <g onclick="showForet(${i})" style="cursor:pointer">
+          <circle cx="${f.x}" cy="${f.y}" r="11" fill="rgba(74,124,89,.22)" stroke="#4a7c59" stroke-width="1.5">
+            <animate attributeName="opacity" values="1;0.6;1" dur="3s" begin="${i*0.4}s" repeatCount="indefinite"/>
+          </circle>
+          <text x="${f.x}" y="${f.y+4}" text-anchor="middle" font-size="11" pointer-events="none">🌲</text>
+        </g>`).join('')}
+    </svg>
+    <div class="foret-box" id="foret-box">
+      <p style="color:var(--text2);text-align:center;padding-top:6px;font-size:13px">
+        ${T('Appuyez sur une forêt pour en savoir plus','Tap a forest to learn more')}
+      </p>
+    </div>`;
+}
+function showForet(i) {
+  const f = FORETS[i];
+  const chips = f.ids.map(id=>{
+    const a = ARBRES.find(x=>x.id===id);
+    return a ? `<span class="tag" onclick="openDetail(${a.id})" style="cursor:pointer">${T(a.nom,a.nomEn)}</span>` : '';
+  }).join('');
+  document.getElementById('foret-box').innerHTML = `
+    <h3>${T(f.nom,f.nomEn)}</h3>
+    <p>${T(f.desc,f.descEn)}</p>
+    <div class="tags" style="margin-top:8px">${chips}</div>`;
+}
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+renderAccueil();
+</script>
+</body>
+</html>
